@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <!-- Static table: 0.4 x 0.4 m top, top surface at z = 0.40 m when spawned at z = 0. -->
+  <model name="table">
+    <static>true</static>
+    <link name="top">
+      <pose>0 0 0.385 0 0 0</pose>
+      <collision name="top_collision">
+        <geometry><box><size>0.4 0.4 0.03</size></box></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="top_visual">
+        <geometry><box><size>0.4 0.4 0.03</size></box></geometry>
+        <material><ambient>0.55 0.4 0.25 1</ambient><diffuse>0.55 0.4 0.25 1</diffuse></material>
+      </visual>
+    </link>
+    <link name="leg_fl">
+      <pose>0.175 0.175 0.185 0 0 0</pose>
+      <collision name="c"><geometry><box><size>0.04 0.04 0.37</size></box></geometry></collision>
+      <visual name="v"><geometry><box><size>0.04 0.04 0.37</size></box></geometry>
+        <material><ambient>0.3 0.2 0.1 1</ambient><diffuse>0.3 0.2 0.1 1</diffuse></material></visual>
+    </link>
+    <link name="leg_fr">
+      <pose>0.175 -0.175 0.185 0 0 0</pose>
+      <collision name="c"><geometry><box><size>0.04 0.04 0.37</size></box></geometry></collision>
+      <visual name="v"><geometry><box><size>0.04 0.04 0.37</size></box></geometry>
+        <material><ambient>0.3 0.2 0.1 1</ambient><diffuse>0.3 0.2 0.1 1</diffuse></material></visual>
+    </link>
+    <link name="leg_bl">
+      <pose>-0.175 0.175 0.185 0 0 0</pose>
+      <collision name="c"><geometry><box><size>0.04 0.04 0.37</size></box></geometry></collision>
+      <visual name="v"><geometry><box><size>0.04 0.04 0.37</size></box></geometry>
+        <material><ambient>0.3 0.2 0.1 1</ambient><diffuse>0.3 0.2 0.1 1</diffuse></material></visual>
+    </link>
+    <link name="leg_br">
+      <pose>-0.175 -0.175 0.185 0 0 0</pose>
+      <collision name="c"><geometry><box><size>0.04 0.04 0.37</size></box></geometry></collision>
+      <visual name="v"><geometry><box><size>0.04 0.04 0.37</size></box></geometry>
+        <material><ambient>0.3 0.2 0.1 1</ambient><diffuse>0.3 0.2 0.1 1</diffuse></material></visual>
+    </link>
+  </model>
+</sdf>

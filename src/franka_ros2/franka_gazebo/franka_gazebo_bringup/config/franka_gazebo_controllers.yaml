@@ -1,0 +1,96 @@
+/**:
+  controller_manager:
+    ros__parameters:
+      update_rate: 1000
+      use_sim_time: true
+      position_proportional_gain: 100.0
+
+      joint_state_broadcaster:
+        type: joint_state_broadcaster/JointStateBroadcaster
+
+      fr3_arm_controller:
+        type: joint_trajectory_controller/JointTrajectoryController
+
+      fr3_gripper:
+        type: effort_controllers/GripperActionController
+
+      joint_position_example_controller:
+        type: franka_example_controllers/JointPositionExampleController
+        arm_id: fr3
+        gazebo: true
+
+
+      joint_velocity_example_controller:
+        type: franka_example_controllers/JointVelocityExampleController
+        robot_type: "fr3"
+        gazebo: true
+
+      joint_impedance_example_controller:
+        type: franka_example_controllers/JointImpedanceExampleController
+        robot_type: "fr3"
+        k_gains: [24.0, 24.0, 24.0, 24.0, 10.0, 6.0, 2.0]
+        d_gains: [2.0, 2.0, 2.0, 1.0, 1.0, 1.0, 0.5]
+
+      gravity_compensation_example_controller:
+        type: franka_example_controllers/GravityCompensationExampleController
+
+      model_example_controller:
+        type: franka_example_controllers/ModelExampleController
+        robot_type: "fr3"
+        arm_prefix: ""
+
+      cartesian_impedance_example_controller:
+        type: franka_example_controllers/CartesianImpedanceExampleController
+
+  fr3_arm_controller:
+    ros__parameters:
+      joints:
+        - fr3_joint1
+        - fr3_joint2
+        - fr3_joint3
+        - fr3_joint4
+        - fr3_joint5
+        - fr3_joint6
+        - fr3_joint7
+      command_interfaces:
+        - effort
+      state_interfaces:
+        - position
+        - velocity
+      gains:
+        # Joints 1-4 (87 Nm limit): integral action removes the steady-state offset left by
+        # gravity-model mismatch. i_clamp is in Nm, so it must be large enough to cancel it.
+        fr3_joint1: {p: 500.0, i: 300.0, d: 10.0, i_clamp: 15.0}
+        fr3_joint2: {p: 500.0, i: 300.0, d: 10.0, i_clamp: 15.0}
+        fr3_joint3: {p: 500.0, i: 300.0, d: 10.0, i_clamp: 15.0}
+        fr3_joint4: {p: 500.0, i: 300.0, d: 10.0, i_clamp: 15.0}
+        # Joints 5-7 (12 Nm limit): smaller integral authority.
+        fr3_joint5: {p: 500.0, i: 100.0, d: 10.0, i_clamp: 3.0}
+        fr3_joint6: {p: 500.0, i: 100.0, d: 10.0, i_clamp: 3.0}
+        fr3_joint7: {p: 500.0, i: 100.0, d: 10.0, i_clamp: 3.0}
+      allow_partial_joints_goal: false
+      open_loop_control: false
+      constraints:
+        stopped_velocity_tolerance: 0.05
+        # goal_time 0.0 means "wait forever" for the arm to settle inside the goal
+        # tolerance. With a real (effort-mode) PID that can hang the whole action, so
+        # give up 5 s after the trajectory ends instead of never returning.
+        goal_time: 5.0
+        fr3_joint1: {trajectory: 0.0, goal: 0.05}
+        fr3_joint2: {trajectory: 0.0, goal: 0.05}
+        fr3_joint3: {trajectory: 0.0, goal: 0.05}
+        fr3_joint4: {trajectory: 0.0, goal: 0.05}
+        fr3_joint5: {trajectory: 0.0, goal: 0.05}
+        fr3_joint6: {trajectory: 0.0, goal: 0.05}
+        fr3_joint7: {trajectory: 0.0, goal: 0.05}
+
+  fr3_gripper:
+    ros__parameters:
+      joint: fr3_finger_joint1
+      goal_tolerance: 0.01
+      max_effort: 40.0
+      allow_stalling: true
+      stall_velocity_threshold: 0.001
+      stall_timeout: 0.5
+      gains:
+        fr3_finger_joint1: {p: 1000.0, i: 10.0, d: 10.0, i_clamp: 5.0}

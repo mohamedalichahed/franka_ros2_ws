@@ -1,0 +1,2124 @@
+<?xml version="1.0" ?>
+<sdf version="1.9">
+  <model name="conveyor_belt">
+    <static>false</static>
+
+    <!-- fixed frame / table top: lengthened to match the belt panel -->
+    <link name="frame">
+      <pose>0 0 0.45 0 0 0</pose>
+      <collision name="frame_collision">
+        <geometry><box><size>1.6 0.4 0.05</size></box></geometry>
+      </collision>
+      <visual name="frame_visual">
+        <geometry><box><size>1.6 0.4 0.05</size></box></geometry>
+        <material>
+          <ambient>0.2 0.2 0.2 1</ambient>
+          <diffuse>0.2 0.2 0.2 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!-- 4 support legs, repositioned under the new, longer frame -->
+    <link name="leg_front_left">
+      <pose>0.7 0.15 0.2125 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="leg_front_left_collision">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="leg_front_left_visual">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <material>
+          <ambient>0.15 0.15 0.15 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="leg_front_right">
+      <pose>0.7 -0.15 0.2125 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="leg_front_right_collision">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="leg_front_right_visual">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <material>
+          <ambient>0.15 0.15 0.15 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="leg_back_left">
+      <pose>-0.7 0.15 0.2125 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="leg_back_left_collision">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="leg_back_left_visual">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <material>
+          <ambient>0.15 0.15 0.15 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <link name="leg_back_right">
+      <pose>-0.7 -0.15 0.2125 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia>
+          <ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz>
+          <ixy>0</ixy><ixz>0</ixz><iyz>0</iyz>
+        </inertia>
+      </inertial>
+      <collision name="leg_back_right_collision">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="leg_back_right_visual">
+        <geometry><box><size>0.05 0.05 0.425</size></box></geometry>
+        <material>
+          <ambient>0.15 0.15 0.15 1</ambient>
+          <diffuse>0.15 0.15 0.15 1</diffuse>
+        </material>
+      </visual>
+    </link>
+
+    <!-- weld each leg rigidly to the frame -->
+    <joint name="frame_to_leg_front_left" type="fixed">
+      <parent>frame</parent>
+      <child>leg_front_left</child>
+    </joint>
+    <joint name="frame_to_leg_front_right" type="fixed">
+      <parent>frame</parent>
+      <child>leg_front_right</child>
+    </joint>
+    <joint name="frame_to_leg_back_left" type="fixed">
+      <parent>frame</parent>
+      <child>leg_back_left</child>
+    </joint>
+    <joint name="frame_to_leg_back_right" type="fixed">
+      <parent>frame</parent>
+      <child>leg_back_right</child>
+    </joint>
+
+
+    <!-- ============================================================ -->
+    <!-- Roller-bed conveyor v2: 58 small rollers (r = 12.5 mm, pitch 26.5 mm)   -->
+    <!-- so a 6 cm cube always rests on 2+ rollers and cannot tumble.  -->
+    <!-- Roller tops at z = 0.495. NEGATIVE velocity => top moves toward -X (the arm), as verified in Gazebo. -->
+    <!-- Surface speed 0.15 m/s = 12.0 rad/s x 0.0125 m.                     -->
+    <!-- ============================================================ -->
+
+    <link name="roller_00">
+      <pose>-0.7600 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_00_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_00_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_00_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_00_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_00</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_01">
+      <pose>-0.7335 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_01_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_01_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_01_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_01_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_01</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_02">
+      <pose>-0.7070 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_02_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_02_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_02_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_02_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_02</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_03">
+      <pose>-0.6805 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_03_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_03_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_03_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_03_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_03</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_04">
+      <pose>-0.6540 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_04_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_04_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_04_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_04_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_04</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_05">
+      <pose>-0.6275 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_05_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_05_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_05_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_05_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_05</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_06">
+      <pose>-0.6010 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_06_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_06_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_06_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_06_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_06</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_07">
+      <pose>-0.5745 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_07_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_07_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_07_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_07_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_07</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_08">
+      <pose>-0.5480 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_08_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_08_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_08_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_08_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_08</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_09">
+      <pose>-0.5215 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_09_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_09_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_09_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_09_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_09</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_10">
+      <pose>-0.4950 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_10_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_10_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_10_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_10_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_10</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_11">
+      <pose>-0.4685 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_11_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_11_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_11_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_11_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_11</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_12">
+      <pose>-0.4420 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_12_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_12_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_12_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_12_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_12</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_13">
+      <pose>-0.4155 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_13_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_13_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_13_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_13_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_13</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_14">
+      <pose>-0.3890 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_14_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_14_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_14_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_14_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_14</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_15">
+      <pose>-0.3625 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_15_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_15_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_15_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_15_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_15</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_16">
+      <pose>-0.3360 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_16_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_16_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_16_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_16_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_16</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_17">
+      <pose>-0.3095 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_17_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_17_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_17_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_17_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_17</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_18">
+      <pose>-0.2830 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_18_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_18_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_18_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_18_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_18</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_19">
+      <pose>-0.2565 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_19_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_19_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_19_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_19_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_19</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_20">
+      <pose>-0.2300 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_20_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_20_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_20_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_20_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_20</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_21">
+      <pose>-0.2035 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_21_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_21_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_21_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_21_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_21</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_22">
+      <pose>-0.1770 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_22_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_22_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_22_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_22_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_22</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_23">
+      <pose>-0.1505 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_23_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_23_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_23_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_23_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_23</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_24">
+      <pose>-0.1240 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_24_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_24_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_24_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_24_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_24</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_25">
+      <pose>-0.0975 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_25_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_25_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_25_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_25_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_25</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_26">
+      <pose>-0.0710 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_26_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_26_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_26_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_26_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_26</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_27">
+      <pose>-0.0445 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_27_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_27_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_27_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_27_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_27</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_28">
+      <pose>-0.0180 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_28_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_28_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_28_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_28_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_28</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_29">
+      <pose>0.0085 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_29_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_29_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_29_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_29_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_29</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_30">
+      <pose>0.0350 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_30_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_30_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_30_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_30_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_30</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_31">
+      <pose>0.0615 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_31_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_31_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_31_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_31_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_31</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_32">
+      <pose>0.0880 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_32_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_32_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_32_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_32_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_32</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_33">
+      <pose>0.1145 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_33_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_33_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_33_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_33_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_33</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_34">
+      <pose>0.1410 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_34_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_34_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_34_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_34_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_34</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_35">
+      <pose>0.1675 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_35_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_35_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_35_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_35_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_35</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_36">
+      <pose>0.1940 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_36_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_36_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_36_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_36_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_36</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_37">
+      <pose>0.2205 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_37_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_37_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_37_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_37_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_37</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_38">
+      <pose>0.2470 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_38_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_38_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_38_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_38_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_38</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_39">
+      <pose>0.2735 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_39_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_39_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_39_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_39_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_39</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_40">
+      <pose>0.3000 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_40_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_40_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_40_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_40_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_40</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_41">
+      <pose>0.3265 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_41_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_41_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_41_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_41_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_41</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_42">
+      <pose>0.3530 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_42_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_42_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_42_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_42_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_42</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_43">
+      <pose>0.3795 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_43_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_43_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_43_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_43_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_43</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_44">
+      <pose>0.4060 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_44_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_44_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_44_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_44_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_44</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_45">
+      <pose>0.4325 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_45_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_45_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_45_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_45_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_45</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_46">
+      <pose>0.4590 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_46_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_46_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_46_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_46_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_46</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_47">
+      <pose>0.4855 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_47_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_47_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_47_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_47_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_47</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_48">
+      <pose>0.5120 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_48_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_48_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_48_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_48_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_48</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_49">
+      <pose>0.5385 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_49_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_49_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_49_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_49_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_49</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_50">
+      <pose>0.5650 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_50_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_50_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_50_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_50_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_50</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_51">
+      <pose>0.5915 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_51_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_51_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_51_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_51_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_51</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_52">
+      <pose>0.6180 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_52_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_52_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_52_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_52_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_52</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_53">
+      <pose>0.6445 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_53_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_53_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_53_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_53_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_53</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_54">
+      <pose>0.6710 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_54_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_54_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_54_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_54_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_54</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_55">
+      <pose>0.6975 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_55_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_55_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_55_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_55_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_55</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_56">
+      <pose>0.7240 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_56_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_56_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_56_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_56_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_56</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <link name="roller_57">
+      <pose>0.7505 0 0.4825 1.5708 0 0</pose>
+      <inertial>
+        <mass>0.1</mass>
+        <inertia><ixx>0.001337</ixx><iyy>0.001337</iyy><izz>0.00000781</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="roller_57_collision">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="roller_57_visual">
+        <geometry><cylinder><radius>0.0125</radius><length>0.4</length></cylinder></geometry>
+        <material><ambient>0.08 0.08 0.08 1</ambient><diffuse>0.08 0.08 0.08 1</diffuse></material>
+      </visual>
+      <visual name="roller_57_stripe">
+        <pose>0.0115 0 0 0 0 0</pose>
+        <geometry><box><size>0.002 0.006 0.4</size></box></geometry>
+        <material><ambient>0.7 0.7 0.7 1</ambient><diffuse>0.7 0.7 0.7 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="roller_57_joint" type="revolute">
+      <parent>frame</parent>
+      <child>roller_57</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit><lower>-1e16</lower><upper>1e16</upper><effort>1e6</effort></limit>
+      </axis>
+    </joint>
+
+    <!-- Hard stop at the arm end: world x = 0.42..0.47, so the cube stops with its centre at x = 0.50 (= PICK_POSE x). -->
+    <link name="stopper">
+      <pose>-0.775 0 0.525 0 0 0</pose>
+      <inertial>
+        <mass>1.0</mass>
+        <inertia><ixx>0.01</ixx><iyy>0.01</iyy><izz>0.01</izz><ixy>0</ixy><ixz>0</ixz><iyz>0</iyz></inertia>
+      </inertial>
+      <collision name="stopper_collision"><geometry><box><size>0.05 0.40 0.06</size></box></geometry></collision>
+      <visual name="stopper_visual">
+        <geometry><box><size>0.05 0.40 0.06</size></box></geometry>
+        <material><ambient>0.9 0.6 0.0 1</ambient><diffuse>0.9 0.6 0.0 1</diffuse></material>
+      </visual>
+    </link>
+    <joint name="frame_to_stopper" type="fixed"><parent>frame</parent><child>stopper</child></joint>
+
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_00_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_01_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_02_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_03_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_04_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_05_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_06_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_07_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_08_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_09_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_10_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_11_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_12_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_13_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_14_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_15_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_16_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_17_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_18_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_19_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_20_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_21_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_22_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_23_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_24_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_25_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_26_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_27_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_28_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_29_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_30_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_31_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_32_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_33_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_34_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_35_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_36_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_37_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_38_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_39_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_40_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_41_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_42_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_43_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_44_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_45_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_46_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_47_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_48_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_49_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_50_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_51_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_52_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_53_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_54_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_55_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_56_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+    <plugin filename="gz-sim-joint-controller-system" name="gz::sim::systems::JointController">
+      <joint_name>roller_57_joint</joint_name>
+      <use_force_commands>false</use_force_commands>
+      <initial_velocity>12.000</initial_velocity>
+    </plugin>
+  </model>
+</sdf>
