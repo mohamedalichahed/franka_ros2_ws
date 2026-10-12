@@ -1,0 +1,44 @@
+# MoveIt-format joint limits (different schema from franka_description's
+# joint_limits.yaml, which is URDF/real-robot oriented). MoveIt's time
+# parameterization reads max_acceleration from here; without it, it silently
+# falls back to a hardcoded 1 rad/s^2 for every joint, which is far below
+# what the FR3 can actually do and stretches out every trajectory.
+# Velocity values match franka_description/robots/fr3/joint_limits.yaml.
+# Acceleration values are commonly-used Franka Panda/FR3 defaults -- verify
+# against your actual datasheet/torque budget if you push speeds further.
+joint_limits:
+  fr3_joint1:
+    has_velocity_limits: true
+    max_velocity: 2.62
+    has_acceleration_limits: true
+    max_acceleration: 15.0
+  fr3_joint2:
+    has_velocity_limits: true
+    max_velocity: 2.62
+    has_acceleration_limits: true
+    max_acceleration: 7.5
+  fr3_joint3:
+    has_velocity_limits: true
+    max_velocity: 2.62
+    has_acceleration_limits: true
+    max_acceleration: 10.0
+  fr3_joint4:
+    has_velocity_limits: true
+    max_velocity: 2.62
+    has_acceleration_limits: true
+    max_acceleration: 12.5
+  fr3_joint5:
+    has_velocity_limits: true
+    max_velocity: 5.26
+    has_acceleration_limits: true
+    max_acceleration: 6.0
+  fr3_joint6:
+    has_velocity_limits: true
+    max_velocity: 4.18
+    has_acceleration_limits: true
+    max_acceleration: 6.0
+  fr3_joint7:
+    has_velocity_limits: true
+    max_velocity: 5.26
+    has_acceleration_limits: true
+    max_acceleration: 6.0
